@@ -2,7 +2,8 @@
 
 @section('title', 'Kontak - Roomify')
 
-@push('style')
+
+@section('content')
     <style>
         body {
             background: #f5f7fb;
@@ -96,9 +97,6 @@
             font-weight: 500;
         }
     </style>
-@endpush
-
-@section('content')
     <div class="container py-5">
 
         <div class="row">

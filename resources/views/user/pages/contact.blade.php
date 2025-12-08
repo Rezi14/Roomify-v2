@@ -2,7 +2,7 @@
 
 @section('title', 'Kontak Kami - Roomify')
 
-@push('style')
+@section('content')
     <style>
         .contact-card {
             background: #ffffff;
@@ -74,9 +74,6 @@
             letter-spacing: -0.5px;
         }
     </style>
-@endpush
-
-@section('content')
     <div class="container py-5">
         {{-- ALERT SUKSES --}}
         @if (session('success'))
