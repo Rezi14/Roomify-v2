@@ -54,8 +54,8 @@
                                     <td>{{ \Carbon\Carbon::parse($pemesanan->check_out_date)->format('d M Y') }}</td>
                                     <td>
                                         <span
-                                            class="badge {{ $pemesanan->status_pemesanan == 'pending' ? 'bg-warning text-dark' : ($pemesanan->status_pemesanan == 'confirmed' ? 'bg-success' : ($pemesanan->status_pemesanan == 'checked_in' ? 'bg-primary' : ($pemesanan->status_pemesanan == 'checked_out' ? 'bg-info' : 'bg-secondary'))) }}">
-                                            {{ ucfirst(str_replace('_', ' ', $pemesanan->status_pemesanan)) }}
+                                            class="badge {{ $pemesanan->status_pemesanan == \App\Enums\StatusPemesanan::PENDING ? 'bg-warning text-dark' : ($pemesanan->status_pemesanan == \App\Enums\StatusPemesanan::CONFIRMED ? 'bg-success' : ($pemesanan->status_pemesanan == \App\Enums\StatusPemesanan::CHECKED_IN ? 'bg-primary' : ($pemesanan->status_pemesanan == \App\Enums\StatusPemesanan::CHECKED_OUT ? 'bg-info' : 'bg-secondary'))) }}">
+                                            {{ ucfirst(str_replace('_', ' ', $pemesanan->status_pemesanan->value)) }}
                                         </span>
                                     </td>
                                     <td>Rp {{ number_format($pemesanan->total_harga, 2, ',', '.') }}</td>

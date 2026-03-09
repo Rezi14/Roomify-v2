@@ -124,19 +124,19 @@
                         <label for="status_pemesanan" class="form-label">Status Pemesanan</label>
                         <select name="status_pemesanan" id="status_pemesanan" class="form-select" required>
                             <option value="pending"
-                                {{ old('status_pemesanan', $pemesanan->status_pemesanan) == 'pending' ? 'selected' : '' }}>
+                                {{ old('status_pemesanan', $pemesanan->status_pemesanan->value) == 'pending' ? 'selected' : '' }}>
                                 Pending</option>
                             <option value="confirmed"
-                                {{ old('status_pemesanan', $pemesanan->status_pemesanan) == 'confirmed' ? 'selected' : '' }}>
+                                {{ old('status_pemesanan', $pemesanan->status_pemesanan->value) == 'confirmed' ? 'selected' : '' }}>
                                 Confirmed</option>
                             <option value="checked_in"
-                                {{ old('status_pemesanan', $pemesanan->status_pemesanan) == 'checked_in' ? 'selected' : '' }}>
+                                {{ old('status_pemesanan', $pemesanan->status_pemesanan->value) == 'checked_in' ? 'selected' : '' }}>
                                 Checked In</option>
                             <option value="checked_out"
-                                {{ old('status_pemesanan', $pemesanan->status_pemesanan) == 'checked_out' ? 'selected' : '' }}>
+                                {{ old('status_pemesanan', $pemesanan->status_pemesanan->value) == 'checked_out' ? 'selected' : '' }}>
                                 Checked Out</option>
                             <option value="cancelled"
-                                {{ old('status_pemesanan', $pemesanan->status_pemesanan) == 'cancelled' ? 'selected' : '' }}>
+                                {{ old('status_pemesanan', $pemesanan->status_pemesanan->value) == 'cancelled' ? 'selected' : '' }}>
                                 Cancelled</option>
                         </select>
                     </div>

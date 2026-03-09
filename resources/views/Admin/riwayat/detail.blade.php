@@ -74,9 +74,9 @@
                         <div class="mb-3">
                             <label class="small font-weight-bold text-secondary">Status Pemesanan</label>
                             <div>
-                                @if ($pemesanan->status_pemesanan == 'paid')
+                                @if ($pemesanan->status_pemesanan == \App\Enums\StatusPemesanan::PAID)
                                     <span class="badge badge-success px-3 py-2" style="font-size: 1rem;">LUNAS (Paid)</span>
-                                @elseif($pemesanan->status_pemesanan == 'cancelled')
+                                @elseif($pemesanan->status_pemesanan == \App\Enums\StatusPemesanan::CANCELLED)
                                     <span class="badge badge-danger px-3 py-2" style="font-size: 1rem;">DIBATALKAN</span>
                                 @endif
                             </div>

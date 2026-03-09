@@ -60,17 +60,17 @@
                     <div class="col-md-9">:
                         @php
                             $badgeClass = match ($pemesanan->status_pemesanan) {
-                                'pending' => 'bg-warning text-dark',
-                                'confirmed' => 'bg-success',
-                                'checked_in' => 'bg-primary',
-                                'checked_out' => 'bg-info text-dark',
-                                'paid' => 'bg-dark',
-                                'cancelled' => 'bg-secondary',
+                                \App\Enums\StatusPemesanan::PENDING     => 'bg-warning text-dark',
+                                \App\Enums\StatusPemesanan::CONFIRMED   => 'bg-success',
+                                \App\Enums\StatusPemesanan::CHECKED_IN  => 'bg-primary',
+                                \App\Enums\StatusPemesanan::CHECKED_OUT => 'bg-info text-dark',
+                                \App\Enums\StatusPemesanan::PAID        => 'bg-dark',
+                                \App\Enums\StatusPemesanan::CANCELLED   => 'bg-secondary',
                                 default => 'bg-light text-dark border',
                             };
                         @endphp
                         <span class="badge {{ $badgeClass }}">
-                            {{ ucfirst(str_replace('_', ' ', $pemesanan->status_pemesanan)) }}
+                            {{ ucfirst(str_replace('_', ' ', $pemesanan->status_pemesanan->value)) }}
                         </span>
                     </div>
                 </div>
@@ -114,7 +114,7 @@
                 <div class="d-flex gap-2 flex-wrap">
 
                     {{-- Tombol Konfirmasi --}}
-                    @if ($pemesanan->status_pemesanan === 'pending')
+                    @if ($pemesanan->status_pemesanan === \App\Enums\StatusPemesanan::PENDING)
                         <form action="{{ route('admin.pemesanans.confirm', $pemesanan->id_pemesanan) }}" method="POST"
                             onsubmit="return confirm('Apakah Anda yakin ingin mengkonfirmasi pemesanan ini?');">
                             @csrf
@@ -130,7 +130,7 @@
                     @endif
 
                     {{-- Tombol Check-in (Hanya jika Confirmed) --}}
-                    @if ($pemesanan->status_pemesanan === 'confirmed')
+                    @if ($pemesanan->status_pemesanan === \App\Enums\StatusPemesanan::CONFIRMED)
                         <form action="{{ route('admin.pemesanans.checkin', $pemesanan->id_pemesanan) }}" method="POST"
                             onsubmit="return confirm('Apakah Anda yakin ingin melakukan check-in?');">
                             @csrf
