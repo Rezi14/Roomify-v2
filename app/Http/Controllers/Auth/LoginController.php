@@ -34,11 +34,11 @@ class LoginController extends Controller
 
             // Mengecek role admin dengan nama role yang konsisten
             if ($user->hasRole('admin')) {
-                return redirect()->intended(route('admin.dashboard'))
-                    ->with('success', 'Selamat datang, Roomify!');
+                return redirect()->route('admin.dashboard')
+                    ->with('success', 'Selamat datang, Admin!');
             }
 
-            return redirect()->intended(route('dashboard'))
+            return redirect()->route('dashboard')
                 ->with('success', 'Berhasil login! Selamat datang.');
         }
 
