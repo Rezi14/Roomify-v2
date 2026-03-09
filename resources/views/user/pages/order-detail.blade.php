@@ -23,17 +23,17 @@
                             <div>
                                 @php
                                     $statusClass = match ($pemesanan->status_pemesanan) {
-                                        'pending' => 'bg-warning text-dark',
-                                        'confirmed' => 'bg-success',
-                                        'checked_in' => 'bg-primary',
-                                        'checked_out' => 'bg-info',
-                                        'paid' => 'bg-dark',
-                                        'cancelled' => 'bg-danger',
+                                        \App\Enums\StatusPemesanan::PENDING     => 'bg-warning text-dark',
+                                        \App\Enums\StatusPemesanan::CONFIRMED   => 'bg-success',
+                                        \App\Enums\StatusPemesanan::CHECKED_IN  => 'bg-primary',
+                                        \App\Enums\StatusPemesanan::CHECKED_OUT => 'bg-info',
+                                        \App\Enums\StatusPemesanan::PAID        => 'bg-dark',
+                                        \App\Enums\StatusPemesanan::CANCELLED   => 'bg-danger',
                                         default => 'bg-secondary',
                                     };
                                 @endphp
                                 <span class="badge {{ $statusClass }} fs-6 px-3 py-2 rounded-pill">
-                                    {{ ucfirst(str_replace('_', ' ', $pemesanan->status_pemesanan)) }}
+                                    {{ ucfirst(str_replace('_', ' ', $pemesanan->status_pemesanan->value)) }}
                                 </span>
                             </div>
                         </div>
@@ -128,12 +128,12 @@
                     {{-- Footer Aksi --}}
                     <div class="card-footer bg-white p-4 border-top">
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            @if ($pemesanan->status_pemesanan == 'pending')
+                            @if ($pemesanan->status_pemesanan == \App\Enums\StatusPemesanan::PENDING)
                                 <a href="{{ route('booking.payment', $pemesanan->id_pemesanan) }}"
                                     class="btn btn-primary fw-bold px-4 py-2">
                                     <i class="fas fa-wallet me-2"></i> Lanjutkan Pembayaran
                                 </a>
-                            @elseif(in_array($pemesanan->status_pemesanan, ['confirmed', 'checked_in', 'paid']))
+                            @elseif(in_array($pemesanan->status_pemesanan, [\App\Enums\StatusPemesanan::CONFIRMED, \App\Enums\StatusPemesanan::CHECKED_IN, \App\Enums\StatusPemesanan::PAID]))
                                 <button class="btn btn-outline-secondary px-4 py-2" onclick="window.print()">
                                     <i class="fas fa-print me-2"></i> Cetak Bukti
                                 </button>

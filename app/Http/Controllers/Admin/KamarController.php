@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\StatusPemesanan;
 use App\Http\Controllers\Controller;
 use App\Models\Kamar;
 use App\Models\TipeKamar;
@@ -79,7 +80,7 @@ class KamarController extends Controller
     {
         // Mengecek apakah ada pesanan aktif (pending/confirmed/checkin) untuk kamar ini
         $pesananAktif = $kamar->pemesanans()
-            ->whereIn('status_pemesanan', ['pending', 'confirmed', 'checkin'])
+            ->whereIn('status_pemesanan', [StatusPemesanan::PENDING, StatusPemesanan::CONFIRMED, StatusPemesanan::CHECKED_IN])
             ->exists();
 
         if ($pesananAktif) {

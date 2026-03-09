@@ -161,7 +161,7 @@
                     <div class="col-md-4">
                         <div class="stat-card d-flex align-items-center justify-content-center gap-3">
                             <div class="stat-number">
-                                {{ $user->pemesanans->where('status_pemesanan', 'confirmed')->count() }}
+                                {{ $user->pemesanans->where('status_pemesanan', \App\Enums\StatusPemesanan::CONFIRMED)->count() }}
                             </div>
                             <div class="stat-label">Selesai</div>
                         </div>
@@ -170,7 +170,7 @@
                     <div class="col-md-4">
                         <div class="stat-card d-flex align-items-center justify-content-center gap-3">
                             <div class="stat-number">
-                                {{ $user->pemesanans->where('status_pemesanan', 'pending')->count() }}
+                                {{ $user->pemesanans->where('status_pemesanan', \App\Enums\StatusPemesanan::PENDING)->count() }}
                             </div>
                             <div class="stat-label">Menunggu</div>
                         </div>
@@ -223,20 +223,20 @@
                                             <td>
                                                 <span
                                                     class="badge-status rounded-pill
-                                        @if ($pemesanan->status_pemesanan == 'confirmed') badge-success
-                                        @elseif ($pemesanan->status_pemesanan == 'pending')
+                                        @if ($pemesanan->status_pemesanan == \App\Enums\StatusPemesanan::CONFIRMED) badge-success
+                                        @elseif ($pemesanan->status_pemesanan == \App\Enums\StatusPemesanan::PENDING)
                                             badge-warning
-                                        @elseif ($pemesanan->status_pemesanan == 'paid') badge-success
+                                        @elseif ($pemesanan->status_pemesanan == \App\Enums\StatusPemesanan::PAID) badge-success
                                         @else
                                             badge-danger @endif
                                     ">
-                                                    {{ ucfirst($pemesanan->status_pemesanan) }}
+                                                    {{ ucfirst($pemesanan->status_pemesanan->value) }}
                                                 </span>
                                             </td>
 
                                             <td class="text-end pe-3">
 
-                                                @if ($pemesanan->status_pemesanan == 'pending')
+                                                @if ($pemesanan->status_pemesanan == \App\Enums\StatusPemesanan::PENDING)
                                                     <a href="{{ route('booking.payment', $pemesanan->id_pemesanan) }}"
                                                         class="btn btn-primary btn-edit">
                                                         Bayar

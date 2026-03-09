@@ -32,8 +32,8 @@ use App\Http\Controllers\Admin\FasilitasController;
 // Redirect root ke dashboard user
 Route::get('/', fn() => redirect()->route('dashboard'));
 
-// Dashboard User (Named 'dashboard')
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// Dashboard User (Named 'dashboard') - Requires login
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
 
 // Kontak
 Route::controller(ContactController::class)->group(function () {
@@ -55,9 +55,15 @@ Route::middleware('guest')->group(function () {
 });
 
 // Forgot password
-Route::controller(ForgotPasswordController::class)->group(function () {
+Route::middleware('guest')->controller(ForgotPasswordController::class)->group(function () {
     Route::get('/forgot-password', 'showLinkRequestForm')->name('password.request');
     Route::post('/forgot-password', 'sendResetLinkEmail')->name('password.email');
+});
+
+// Reset password (harus bisa diakses tanpa login!)
+Route::middleware('guest')->controller(ResetPasswordController::class)->group(function () {
+    Route::get('/reset-password/{token}', 'showResetForm')->name('password.reset');
+    Route::post('/reset-password', 'reset')->name('password.update');
 });
 
 
@@ -66,11 +72,7 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Reset password
-    Route::controller(ResetPasswordController::class)->group(function () {
-        Route::get('/reset-password/{token}', 'showResetForm')->name('password.reset');
-        Route::post('/reset-password', 'reset')->name('password.update');
-    });
+    // Reset password - moved to guest group above
 
     // Verifikasi email
     Route::controller(VerificationController::class)->group(function () {
@@ -96,7 +98,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/pembayaran/{id}', 'showPayment')->name('booking.payment');
         Route::get('/pembayaran/{id}/check', 'checkPaymentStatus')->name('booking.payment.check');
         Route::post('/pembayaran/{id}/cancel', 'cancelBooking')->name('booking.payment.cancel');
-        Route::get('/simulasi/qr-scan/{id}', 'simulatePaymentSuccess')->name('simulation.qr.scan');
+        if (app()->environment('local', 'testing')) {
+            Route::get('/simulasi/qr-scan/{id}', 'simulatePaymentSuccess')->name('simulation.qr.scan');
+        }
     });
 
     /*

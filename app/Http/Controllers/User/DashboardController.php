@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Enums\StatusPemesanan;
 use App\Http\Controllers\Controller;
 use App\Models\Fasilitas;
 use App\Models\Kamar;
@@ -35,8 +36,8 @@ class DashboardController extends Controller
 
                 // Cari kamar yang TIDAK memiliki pesanan yang bertabrakan di tanggal tersebut
                 $query->whereDoesntHave('pemesanans', function (Builder $q) use ($checkIn, $checkOut) {
-                    $q->where('status_pemesanan', '!=', 'cancelled')
-                      ->where('status_pemesanan', '!=', 'checked_out') // Asumsi checked_out sudah kosong
+                    $q->where('status_pemesanan', '!=', StatusPemesanan::CANCELLED)
+                      ->where('status_pemesanan', '!=', StatusPemesanan::CHECKED_OUT)
                       ->where(function (Builder $sub) use ($checkIn, $checkOut) {
                           // Logika Overlap: (StartA < EndB) && (EndA > StartB)
                           // Artinya: Waktu booking user (A) bertabrakan dengan booking database (B)

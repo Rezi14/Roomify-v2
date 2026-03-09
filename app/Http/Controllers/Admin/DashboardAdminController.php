@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\StatusPemesanan;
 use App\Http\Controllers\Controller;
 use App\Models\Kamar;
 use App\Models\Pemesanan;
@@ -19,7 +20,7 @@ class DashboardAdminController extends Controller
 
         // Mengambil Data Pelanggan yang Sedang Check-in
         $pelangganCheckin = Pemesanan::with(['user', 'kamar.tipeKamar', 'fasilitas'])
-            ->where('status_pemesanan', 'checked_in')
+            ->where('status_pemesanan', StatusPemesanan::CHECKED_IN)
             ->orderBy('id_pemesanan', 'desc')
             ->get();
 

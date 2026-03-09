@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Enums\StatusPemesanan;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreBookingRequest;
 use App\Models\Fasilitas;
 use App\Models\Kamar;
 use App\Models\Pemesanan;
+use App\Services\BookingService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 /**
@@ -19,16 +22,15 @@ use Illuminate\View\View;
  */
 class BookingController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('auth');
-    // }
+    public function __construct(private BookingService $bookingService)
+    {
+    }
 
     public function showBookingForm(Kamar $kamar): View|RedirectResponse
     {
         // Cek pending booking
         $pendingBooking = Pemesanan::where('user_id', Auth::id())
-            ->where('status_pemesanan', 'pending')
+            ->where('status_pemesanan', StatusPemesanan::PENDING)
             ->first();
 
         if ($pendingBooking) {
@@ -43,11 +45,11 @@ class BookingController extends Controller
         return view('user.booking', compact('kamar', 'fasilitasTersedia', 'maxTamu'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreBookingRequest $request): RedirectResponse
     {
         // Cek pending booking
         $pendingBooking = Pemesanan::where('user_id', Auth::id())
-            ->where('status_pemesanan', 'pending')
+            ->where('status_pemesanan', StatusPemesanan::PENDING)
             ->first();
 
         if ($pendingBooking) {
@@ -55,60 +57,20 @@ class BookingController extends Controller
                 ->with('error', 'Selesaikan pembayaran transaksi sebelumnya.');
         }
 
-        $request->validate([
-            'kamar_id'       => ['required', 'exists:kamars,id_kamar'],
-            'check_in_date'  => ['required', 'date', 'after_or_equal:today'],
-            'check_out_date' => ['required', 'date', 'after:check_in_date'],
-            'jumlah_tamu'    => ['required', 'integer', 'min:1'],
-            'fasilitas_ids'  => ['nullable', 'array'],
-        ]);
-
         $checkIn  = $request->check_in_date;
         $checkOut = $request->check_out_date;
 
         try {
             return DB::transaction(function () use ($request, $checkIn, $checkOut) {
-                // (Validasi overlap tanggal TETAP SAMA)
-                $isBooked = Pemesanan::where('kamar_id', $request->kamar_id)
-                    ->where('status_pemesanan', '!=', 'cancelled')
-                    ->where('status_pemesanan', '!=', 'checked_out')
-                    ->where(function ($query) use ($checkIn, $checkOut) {
-                        $query->where(function ($q) use ($checkIn, $checkOut) {
-                            $q->where('check_in_date', '<', $checkOut)
-                              ->where('check_out_date', '>', $checkIn);
-                        });
-                    })
-                    ->lockForUpdate()
-                    ->exists();
-
-                if ($isBooked) {
+                if (!$this->bookingService->isRoomAvailable((int) $request->kamar_id, $checkIn, $checkOut)) {
                     return back()->with('error', 'Maaf, kamar tidak tersedia pada tanggal yang dipilih.');
                 }
 
                 $kamar = Kamar::with('tipeKamar')->findOrFail($request->kamar_id);
 
-                // Validasi Tanggal & Durasi
-                $in     = Carbon::parse($checkIn)->startOfDay();
-                $out    = Carbon::parse($checkOut)->startOfDay();
-                $durasi = $in->diffInDays($out);
-
-                $totalHarga = $kamar->tipeKamar->harga_per_malam * $durasi;
-
-                // Menyiapkan data fasilitas untuk pivot (agar harga tersimpan)
-                $fasilitasData = [];
-                if ($request->has('fasilitas_ids')) {
-                    $fasilitas = Fasilitas::whereIn('id_fasilitas', $request->fasilitas_ids)->get();
-
-                    foreach ($fasilitas as $f) {
-                        $totalHarga += $f->biaya_tambahan;
-
-                        // Menyiapkan array untuk attach() berisi harga saat ini
-                        $fasilitasData[$f->id_fasilitas] = [
-                            'jumlah' => 1,
-                            'total_harga_fasilitas' => $f->biaya_tambahan
-                        ];
-                    }
-                }
+                $fasilitasIds  = $request->input('fasilitas_ids', []);
+                $totalHarga    = $this->bookingService->calculateTotalPrice($kamar, $checkIn, $checkOut, $fasilitasIds);
+                $fasilitasData = $this->bookingService->prepareFasilitasPivotData($fasilitasIds);
 
                 $pemesanan = Pemesanan::create([
                     'user_id'          => Auth::id(),
@@ -117,7 +79,7 @@ class BookingController extends Controller
                     'check_out_date'   => $checkOut,
                     'jumlah_tamu'      => $request->jumlah_tamu,
                     'total_harga'      => $totalHarga,
-                    'status_pemesanan' => 'pending',
+                    'status_pemesanan' => StatusPemesanan::PENDING,
                 ]);
 
                 // Attach dengan data pivot
@@ -130,7 +92,8 @@ class BookingController extends Controller
             });
 
         } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            Log::error('Booking error: ' . $e->getMessage(), ['exception' => $e]);
+            return back()->with('error', 'Terjadi kesalahan sistem. Silakan coba lagi.');
         }
     }
 
@@ -143,7 +106,7 @@ class BookingController extends Controller
         }
 
         // Jika sudah tidak pending, lempar ke dashboard
-        if ($pemesanan->status_pemesanan !== 'pending') {
+        if ($pemesanan->status_pemesanan !== StatusPemesanan::PENDING) {
             return redirect()->route('dashboard');
         }
 
@@ -154,7 +117,7 @@ class BookingController extends Controller
 
         // Menghitung sisa waktu untuk tampilan view
         $waktuDibuat = Carbon::parse($pemesanan->created_at);
-        $batasWaktu  = $waktuDibuat->addMinutes(10);
+        $batasWaktu  = $waktuDibuat->copy()->addMinutes(10);
 
         return view('user.payment', compact('pemesanan', 'batasWaktu'));
     }
@@ -163,7 +126,11 @@ class BookingController extends Controller
     {
         $pemesanan = Pemesanan::findOrFail($id);
 
-        if ($pemesanan->status_pemesanan == 'confirmed') {
+        if ($pemesanan->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if ($pemesanan->status_pemesanan === StatusPemesanan::CONFIRMED) {
             return response()->json(['status' => 'success']);
         }
 
@@ -172,7 +139,7 @@ class BookingController extends Controller
             return response()->json(['status' => 'expired']);
         }
 
-        if ($pemesanan->status_pemesanan == 'cancelled') {
+        if ($pemesanan->status_pemesanan === StatusPemesanan::CANCELLED) {
             return response()->json(['status' => 'expired']);
         }
 
@@ -183,8 +150,8 @@ class BookingController extends Controller
     {
         $pemesanan = Pemesanan::findOrFail($id);
 
-        if ($pemesanan->user_id == Auth::id() && $pemesanan->status_pemesanan == 'pending') {
-            $pemesanan->update(['status_pemesanan' => 'cancelled']);
+        if ($pemesanan->user_id == Auth::id() && $pemesanan->status_pemesanan === StatusPemesanan::PENDING) {
+            $pemesanan->update(['status_pemesanan' => StatusPemesanan::CANCELLED]);
             return redirect()->route('dashboard')->with('success', 'Pesanan dibatalkan.');
         }
 
@@ -206,8 +173,8 @@ class BookingController extends Controller
     {
         $pemesanan = Pemesanan::with('kamar')->findOrFail($id);
 
-        if ($pemesanan->status_pemesanan == 'pending') {
-            $pemesanan->update(['status_pemesanan' => 'confirmed']);
+        if ($pemesanan->status_pemesanan === StatusPemesanan::PENDING) {
+            $pemesanan->update(['status_pemesanan' => StatusPemesanan::CONFIRMED]);
             return redirect()->route('dashboard')->with('success', 'Pembayaran Berhasil! Kamar Berhasil Dipesan.');
         }
 
