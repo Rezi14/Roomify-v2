@@ -21,10 +21,11 @@ class PemesananController extends Controller
     // Menampilkan daftar semua pemesanan aktif (selain paid/cancelled).
     public function index(): View
     {
-        $pemesanans = Pemesanan::with(['user', 'kamar.tipeKamar', 'fasilitas'])
-            ->whereNotIn('status_pemesanan', ['paid', 'cancelled'])
-            ->orderBy('check_in_date', 'desc')
-            ->get();
+        // $pemesanans = Pemesanan::with(['user', 'kamar.tipeKamar', 'fasilitas'])
+        //     ->whereNotIn('status_pemesanan', ['paid', 'cancelled'])
+        //     ->orderBy('check_in_date', 'desc')
+        //     ->get();
+        $pemesanans = Pemesanan::orderBy('id_pemesanan', 'asc')->get();
 
         return view('admin.pemesanans.index', compact('pemesanans'));
     }
