@@ -1,17 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthApiController;
-use App\Http\Controllers\Api\KamarApiController;
-use App\Http\Controllers\Api\BookingApiController;
-use App\Http\Controllers\Api\ProfileApiController;
+use App\Http\Controllers\Api\Auth\AuthApiController;
+use App\Http\Controllers\Api\User\kamarApiController;
+use App\Http\Controllers\Api\User\BookingApiController;
+use App\Http\Controllers\Api\User\ProfileApiController;
 use App\Http\Controllers\Api\Admin\DashboardAdminApiController;
 use App\Http\Controllers\Api\Admin\KamarAdminApiController;
 use App\Http\Controllers\Api\Admin\TipeKamarAdminApiController;
 use App\Http\Controllers\Api\Admin\PemesananAdminApiController;
 use App\Http\Controllers\Api\Admin\UserAdminApiController;
 use App\Http\Controllers\Api\Admin\FasilitasAdminApiController;
-
 /*
 |--------------------------------------------------------------------------
 | API Routes - Roomify v2
